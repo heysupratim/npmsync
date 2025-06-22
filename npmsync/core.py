@@ -12,10 +12,10 @@ def load_config():
     # Config
     return {
         "npm_url": os.environ.get("NPM_URL", ""),
-        "username": os.environ.get("USERNAME", ""),
-        "password": os.environ.get("PASSWORD", ""),
-        "wildcard_domain": os.environ.get("WILDCARD_DOMAIN", ""),
-        "config_file": os.environ.get("CONFIG_FILE", "")
+        "username": os.environ.get("NPM_USERNAME", ""),
+        "password": os.environ.get("NPM_PASSWORD", ""),
+        "wildcard_domain": os.environ.get("NPM_WILDCARD_DOMAIN", ""),
+        "config_file": os.environ.get("NPM_CONFIG_FILE", "")
     }
 
 def get_token(npm_url, username, password):

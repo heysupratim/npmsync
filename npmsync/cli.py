@@ -13,6 +13,11 @@ def main():
     
     # Load config from .env file
     config = load_config()
+
+    # print config
+    print("Loaded configuration:")
+    for key, value in config.items():
+        print(f"{key}: {value}")
     
     # Override with command-line arguments if provided
     if args.config:
