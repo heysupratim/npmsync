@@ -1,3 +1,5 @@
+> ⚠️ **Warning:** This project is a work in progress. **Do not use it in production environments.**
+
 # NPM Sync
 
 A tool to automate configuration of Nginx Proxy Manager hosts.
