@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "npmsync"
+version = "0.1.0"
+description = "Automation tool for Nginx Proxy Manager"
+authors = ["Supratim <sup270792@gmail.com>"]
+readme = "README.md"
+packages = [{include = "npmsync"}]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+requests = "^2.28.0"
+python-dotenv = "^1.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.3.1"
+
+[tool.poetry.scripts]
+npmsync = "npmsync.cli:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
