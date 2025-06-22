@@ -35,17 +35,13 @@ def main():
     if not config["config_file"]:
         print("Error: CONFIG_FILE not set. Please set it in .env or provide --config")
         sys.exit(1)
-    if not config["wildcard_domain"]:
-        print("Error: WILDCARD_DOMAIN not set. Please set it in .env")
-        sys.exit(1)
     
     try:
         sync_hosts(
             config["config_file"],
             config["npm_url"],
             config["username"],
-            config["password"],
-            config["wildcard_domain"]
+            config["password"]
         )
         print("Synchronization completed successfully")
     except Exception as e:
