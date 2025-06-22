@@ -21,7 +21,7 @@ def main():
     
     # Override with command-line arguments if provided
     if args.config:
-        config["config_file"] = args.config
+        config["proxy_hosts_file"] = args.config
     if args.npm_url:
         config["npm_url"] = args.npm_url
         
@@ -32,13 +32,13 @@ def main():
     if not config["username"] or not config["password"]:
         print("Error: USERNAME or PASSWORD not set. Please set them in .env")
         sys.exit(1)
-    if not config["config_file"]:
-        print("Error: CONFIG_FILE not set. Please set it in .env or provide --config")
+    if not config["proxy_hosts_file"]:
+        print("Error: PROXY_HOSTS_FILE not set. Please set it in .env or provide --config")
         sys.exit(1)
     
     try:
         sync_hosts(
-            config["config_file"],
+            config["proxy_hosts_file"],
             config["npm_url"],
             config["username"],
             config["password"]
