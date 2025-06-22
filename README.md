@@ -17,7 +17,7 @@ Create a `.env` file in the project root:
 NPM_URL=https://your-npm-instance
 NPM_USERNAME=your_username
 NPM_PASSWORD=your_password
-NPM_CONFIG_FILE=hosts.json
+NPM_PROXY_HOSTS_FILE=hosts.json
 ```
 
 ## Usage
@@ -27,7 +27,7 @@ NPM_CONFIG_FILE=hosts.json
 poetry run npmsync
 
 # Or with specific config file
-poetry run npmsync --config /path/to/config.json
+poetry run npmsync --config /path/to/hosts.json
 ```
 
 ## Configuration File Format

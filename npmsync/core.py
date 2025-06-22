@@ -14,7 +14,7 @@ def load_config():
         "npm_url": os.environ.get("NPM_URL", ""),
         "username": os.environ.get("NPM_USERNAME", ""),
         "password": os.environ.get("NPM_PASSWORD", ""),
-        "config_file": os.environ.get("NPM_CONFIG_FILE", "")
+        "proxy_hosts_file": os.environ.get("NPM_PROXY_HOSTS_FILE", "")
     }
 
 def get_token(npm_url, username, password):
