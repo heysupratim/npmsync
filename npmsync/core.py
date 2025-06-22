@@ -36,23 +36,41 @@ def extract_wildcards_from_domains(domains):
             wildcards.add(wildcard)
     return list(wildcards)
 
-def get_certificate_id(npm_url, token, wildcard_domains):
+def get_certificate_mapping(npm_url, token, wildcard_domains):
+    """Get a mapping of wildcard domains to their certificate IDs."""
     resp = requests.get(f"{npm_url}/api/nginx/certificates", headers={
         "Authorization": f"Bearer {token}"
     })
     resp.raise_for_status()
     certs = resp.json()
     
-    # Try to find a certificate that matches any of our wildcard domains
+    cert_mapping = {}
     for wildcard in wildcard_domains:
         for cert in certs:
             if wildcard in cert["domain_names"]:
-                print(f"Using certificate: {cert['nice_name']} (ID: {cert['id']}) for {wildcard}")
-                return cert["id"]
+                print(f"Found certificate: {cert['nice_name']} (ID: {cert['id']}) for {wildcard}")
+                cert_mapping[wildcard] = cert["id"]
+                break
+        
+        if wildcard not in cert_mapping:
+            print(f"Warning: No matching certificate found for {wildcard}")
     
-    # If we reach here, no matching certificate was found
-    wildcard_list = ', '.join(wildcard_domains)
-    raise ValueError(f"No matching wildcard certificates found for: {wildcard_list}")
+    if not cert_mapping:
+        wildcard_list = ', '.join(wildcard_domains)
+        raise ValueError(f"No matching wildcard certificates found for any of: {wildcard_list}")
+    
+    return cert_mapping
+
+def get_domain_certificate_id(domain, cert_mapping):
+    """Get the appropriate certificate ID for a domain based on the cert mapping."""
+    domain_parts = domain.split('.')
+    if len(domain_parts) >= 2:
+        wildcard = f"*.{'.'.join(domain_parts[1:])}"
+        if wildcard in cert_mapping:
+            return cert_mapping[wildcard]
+    
+    # If no matching wildcard found, use the first available certificate
+    return next(iter(cert_mapping.values()))
 
 def get_existing_hosts(npm_url, token):
     resp = requests.get(f"{npm_url}/api/nginx/proxy-hosts", headers={
@@ -98,8 +116,13 @@ def sync_hosts(config_file, npm_url, username, password):
     print(f"Extracted wildcard domains: {', '.join(wildcard_domains)}")
     
     token = get_token(npm_url, username, password)
-    cert_id = get_certificate_id(npm_url, token, wildcard_domains)
+    cert_mapping = get_certificate_mapping(npm_url, token, wildcard_domains)
 
     for conf in configs:
+        # Get the appropriate certificate ID for this domain
+        domain = conf["domain_names"][0]
+        cert_id = get_domain_certificate_id(domain, cert_mapping)
+        print(f"Using certificate ID {cert_id} for {domain}")
+        
         conf["certificate_id"] = cert_id
         create_or_update_host(npm_url, token, conf)
