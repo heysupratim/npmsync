@@ -15,10 +15,9 @@ Create a `.env` file in the project root:
 
 ```
 NPM_URL=https://your-npm-instance
-USERNAME=your_username
-PASSWORD=your_password
-WILDCARD_DOMAIN=*.yourdomain.com
-CONFIG_FILE=hosts.json
+NPM_USERNAME=your_username
+NPM_PASSWORD=your_password
+NPM_CONFIG_FILE=hosts.json
 ```
 
 ## Usage
@@ -38,24 +37,21 @@ The configuration file should be a JSON array of proxy host configurations:
 ```json
 [
   {
-    "domain_names": ["app1.yourdomain.com"],
-    "forward_host": "192.168.1.100",
-    "forward_port": 8080,
-    "access_list_id": "0",
-    "certificate_id": 0,
+    "domain_names": ["subdomain.domain.com"],
+    "forward_host": "",
+    "forward_port": ,
+    "forward_scheme": "http",
     "ssl_forced": true,
+    "block_exploits": false,
     "caching_enabled": false,
-    "block_exploits": true,
-    "advanced_config": "",
-    "meta": {
-      "letsencrypt_agree": false,
-      "dns_challenge": false
-    },
     "allow_websocket_upgrade": true,
     "http2_support": true,
-    "forward_scheme": "http",
     "enabled": true,
-    "locations": []
+    "access_list_id": null,
+    "meta": {
+      "letsencrypt_agree": true,
+      "dns_challenge": false
+    }
   }
 ]
 ```
