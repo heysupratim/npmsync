@@ -69,8 +69,12 @@ def get_domain_certificate_id(domain, cert_mapping):
         if wildcard in cert_mapping:
             return cert_mapping[wildcard]
     
-    # If no matching wildcard found, use the first available certificate
-    return next(iter(cert_mapping.values()))
+    # If no matching wildcard found and cert_mapping is not empty, use the first available certificate
+    if cert_mapping:
+        return next(iter(cert_mapping.values()))
+    
+    # Return None if no certificates are available
+    return None
 
 def get_existing_hosts(npm_url, token):
     resp = requests.get(f"{npm_url}/api/nginx/proxy-hosts", headers={
@@ -111,18 +115,30 @@ def sync_hosts(config_file, npm_url, username, password):
     # Generate wildcard domains from the domain names
     wildcard_domains = extract_wildcards_from_domains(all_domains)
     if not wildcard_domains:
-        raise ValueError("Could not extract any wildcard domains from configuration")
+        print("Warning: Could not extract any wildcard domains from configuration")
+        cert_mapping = {}
+    else:
+        print(f"Extracted wildcard domains: {', '.join(wildcard_domains)}")
+        token = get_token(npm_url, username, password)
+        try:
+            cert_mapping = get_certificate_mapping(npm_url, token, wildcard_domains)
+        except ValueError as e:
+            print(f"Warning: {str(e)}")
+            cert_mapping = {}
     
-    print(f"Extracted wildcard domains: {', '.join(wildcard_domains)}")
-    
-    token = get_token(npm_url, username, password)
-    cert_mapping = get_certificate_mapping(npm_url, token, wildcard_domains)
+    token = token if 'token' in locals() else get_token(npm_url, username, password)
 
     for conf in configs:
         # Get the appropriate certificate ID for this domain
         domain = conf["domain_names"][0]
         cert_id = get_domain_certificate_id(domain, cert_mapping)
-        print(f"Using certificate ID {cert_id} for {domain}")
         
-        conf["certificate_id"] = cert_id
+        if cert_id:
+            print(f"Using certificate ID {cert_id} for {domain}")
+            conf["certificate_id"] = cert_id
+        else:
+            print(f"No certificate found for {domain}, proceeding without SSL")
+            # Remove certificate_id if it exists in the config
+            conf.pop("certificate_id", None)
+        
         create_or_update_host(npm_url, token, conf)
