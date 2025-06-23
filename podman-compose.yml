@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  npmsync:
+    container_name: npmsync
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - ./proxy_hosts.json:/app/proxy_hosts.json:z
+    user: "1000:1000"
+    restart: unless-stopped
