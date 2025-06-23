@@ -1,6 +1,6 @@
 """Command line interface for npmsync."""
 
-from .core import load_config, sync_hosts
+from .core import load_config, watch_config_file
 import argparse
 import sys
 
@@ -37,13 +37,12 @@ def main():
         sys.exit(1)
     
     try:
-        sync_hosts(
+        watch_config_file(
             config["proxy_hosts_file"],
             config["npm_url"],
             config["username"],
             config["password"]
         )
-        print("Synchronization completed successfully")
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)

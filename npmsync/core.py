@@ -1,7 +1,10 @@
 import requests
 import json
 import os
+import time
 from dotenv import load_dotenv
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 
 def load_config():
     """Load configuration from environment variables."""
@@ -101,6 +104,46 @@ def create_or_update_host(npm_url, token, config):
                       headers={"Authorization": f"Bearer {token}"},
                       json=config)
     r.raise_for_status()
+
+class ConfigFileHandler(FileSystemEventHandler):
+    """Handler for config file change events."""
+    def __init__(self, config_file, npm_url, username, password):
+        self.config_file = config_file
+        self.npm_url = npm_url
+        self.username = username
+        self.password = password
+        self.last_modified = time.time()
+        
+    def on_modified(self, event):
+        # Avoid duplicate events (some systems trigger multiple events)
+        current_time = time.time()
+        if current_time - self.last_modified < 1:  # Debounce for 1 second
+            return
+            
+        self.last_modified = current_time
+        
+        if not event.is_directory and event.src_path == os.path.abspath(self.config_file):
+            print(f"Config file {self.config_file} modified, syncing hosts...")
+            sync_hosts(self.config_file, self.npm_url, self.username, self.password)
+
+def watch_config_file(config_file, npm_url, username, password):
+    """Watch the config file for changes and sync hosts when changes are detected."""
+    # Initial sync
+    sync_hosts(config_file, npm_url, username, password)
+    
+    # Set up file watching
+    event_handler = ConfigFileHandler(config_file, npm_url, username, password)
+    observer = Observer()
+    observer.schedule(event_handler, path=os.path.dirname(os.path.abspath(config_file)), recursive=False)
+    observer.start()
+    
+    print(f"Watching {config_file} for changes. Press Ctrl+C to stop.")
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
 
 def sync_hosts(config_file, npm_url, username, password):
     """Synchronize hosts based on configuration file."""
