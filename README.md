@@ -10,6 +10,12 @@ A tool to automate configuration of Nginx Proxy Manager hosts.
 # Install with Poetry
 poetry install
 ```
+Alternative
+
+```
+podman compose up
+
+```
 
 ## Configuration
 
