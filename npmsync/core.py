@@ -3,7 +3,7 @@ import json
 import os
 import time
 from dotenv import load_dotenv
-from watchdog.observers import Observer
+from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 
 def load_config():
@@ -133,7 +133,7 @@ def watch_config_file(config_file, npm_url, username, password):
     
     # Set up file watching
     event_handler = ConfigFileHandler(config_file, npm_url, username, password)
-    observer = Observer()
+    observer = PollingObserver()
     observer.schedule(event_handler, path=os.path.dirname(os.path.abspath(config_file)), recursive=False)
     observer.start()
     
