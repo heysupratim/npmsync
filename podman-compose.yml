@@ -9,6 +9,6 @@ services:
     env_file:
       - .env
     volumes:
-      - ./proxy_hosts.json:/app/proxy_hosts.json:z
+      - ./proxy_hosts.json:/app/proxy_hosts.json:z,nocopy
     user: "1000:1000"
     restart: unless-stopped
