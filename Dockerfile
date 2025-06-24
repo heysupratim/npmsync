@@ -27,5 +27,8 @@ USER appuser
 # Install dependencies
 RUN poetry install
 
+# Set Python to run unbuffered to see logs immediately
+ENV PYTHONUNBUFFERED=1
+
 # Command to run the application
 CMD ["poetry", "run", "npmsync"]
