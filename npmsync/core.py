@@ -3,7 +3,7 @@ import json
 import os
 import time
 from dotenv import load_dotenv
-from watchdog.observers import Observer
+from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 
 def load_config():
@@ -106,9 +106,9 @@ def create_or_update_host(npm_url, token, config):
     r.raise_for_status()
 
 class ConfigFileHandler(FileSystemEventHandler):
-    """Handler for config file change events."""
-    def __init__(self, config_file, npm_url, username, password):
-        self.config_file = config_file
+    """Handler for config directory change events."""
+    def __init__(self, config_dir, npm_url, username, password):
+        self.config_dir = os.path.abspath(config_dir)
         self.npm_url = npm_url
         self.username = username
         self.password = password
@@ -122,22 +122,29 @@ class ConfigFileHandler(FileSystemEventHandler):
             
         self.last_modified = current_time
         
-        if not event.is_directory and event.src_path == os.path.abspath(self.config_file):
-            print(f"Config file {self.config_file} modified, syncing hosts...")
-            sync_hosts(self.config_file, self.npm_url, self.username, self.password)
+        # Check if the event is for a file (not directory) and if it's a JSON file in our config directory
+        if (not event.is_directory and 
+            os.path.dirname(os.path.abspath(event.src_path)) == self.config_dir and
+            event.src_path.endswith('.json')):
+            print(f"Config file {os.path.basename(event.src_path)} modified, syncing hosts...")
+            config_file = event.src_path
+            sync_hosts(config_file, self.npm_url, self.username, self.password)
 
-def watch_config_file(config_file, npm_url, username, password):
-    """Watch the config file for changes and sync hosts when changes are detected."""
-    # Initial sync
-    sync_hosts(config_file, npm_url, username, password)
+def watch_config_directory(config_dir, npm_url, username, password):
+    """Watch the config directory for changes and sync hosts when changes are detected."""
+    # Get default config file for initial sync
+    default_config_file = os.path.join(config_dir, "proxy_hosts.json")
+    if os.path.exists(default_config_file):
+        # Initial sync with default file
+        sync_hosts(default_config_file, npm_url, username, password)
     
-    # Set up file watching
-    event_handler = ConfigFileHandler(config_file, npm_url, username, password)
-    observer = Observer()
-    observer.schedule(event_handler, path=os.path.dirname(os.path.abspath(config_file)), recursive=False)
+    # Set up directory watching
+    event_handler = ConfigFileHandler(config_dir, npm_url, username, password)
+    observer = PollingObserver()
+    observer.schedule(event_handler, path=config_dir, recursive=False)
     observer.start()
     
-    print(f"Watching {config_file} for changes. Press Ctrl+C to stop.")
+    print(f"Watching directory {config_dir} for changes. Press Ctrl+C to stop.")
     try:
         while True:
             time.sleep(1)

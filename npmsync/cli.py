@@ -1,7 +1,8 @@
 """Command line interface for npmsync."""
 
-from .core import load_config, watch_config_file
+from .core import load_config, watch_config_directory
 import argparse
+import os
 import sys
 
 def main():
@@ -31,8 +32,12 @@ def main():
         sys.exit(1)
     
     try:
-        watch_config_file(
-            config["proxy_hosts_file"],
+        # Get the directory containing the proxy hosts file
+        config_dir = os.path.dirname("/app/config/proxy_hosts.json")
+
+        # Watch the entire config directory
+        watch_config_directory(
+            config_dir,
             config["npm_url"],
             config["username"],
             config["password"]
