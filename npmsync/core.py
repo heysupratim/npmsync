@@ -123,14 +123,10 @@ class ConfigFileHandler(FileSystemEventHandler):
         self.last_modified = current_time
         # Log the event variables for debugging
         print(f"Event type: {event.event_type}, Path: {event.src_path}")
-        
-        # Check if the event is for a file (not directory) and if it's a JSON file in our config directory
-        if (not event.is_directory and 
-            os.path.dirname(os.path.abspath(event.src_path)) == self.config_dir and
-            event.src_path.endswith('.json')):
-            print(f"Config file {os.path.basename(event.src_path)} modified, syncing hosts...")
-            config_file = event.src_path
-            sync_hosts(config_file, self.npm_url, self.username, self.password)
+
+        print(f"Config file {os.path.basename(event.src_path)} modified, syncing hosts...")
+        config_file = event.src_path
+        sync_hosts(config_file, self.npm_url, self.username, self.password)
 
 def watch_config_directory(config_dir, npm_url, username, password):
     """Watch the config directory for changes and sync hosts when changes are detected."""
