@@ -124,10 +124,11 @@ class ConfigFileHandler(FileSystemEventHandler):
         # Log the event variables for debugging
         print(f"Event type: {event.event_type}, Path: {event.src_path}")
 
-        print(f"Config file {os.path.basename(event.src_path)} modified, syncing hosts...")
-        config_file = event.src_path
-        sync_hosts(config_file, self.npm_url, self.username, self.password)
-
+        print(f"Dir {os.path.basename(event.src_path)} modified, syncing hosts...")
+        default_config_file = os.path.join(self.config_dir, "proxy_hosts.json")
+        if os.path.exists(default_config_file):
+            sync_hosts(default_config_file, self.npm_url, self.username, self.password)
+            
 def watch_config_directory(config_dir, npm_url, username, password):
     """Watch the config directory for changes and sync hosts when changes are detected."""
     # Get default config file for initial sync
