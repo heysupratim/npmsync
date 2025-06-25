@@ -18,6 +18,9 @@ RUN poetry config virtualenvs.create false
 # Copy only the npmsync folder
 COPY ./npmsync ./npmsync
 
+# Create config directory for bind mounting
+RUN mkdir -p /app/config && chown -R appuser:appuser /app/config
+
 # Set proper ownership of the application directory
 RUN chown -R appuser:appuser /app
 

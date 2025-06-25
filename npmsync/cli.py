@@ -7,7 +7,6 @@ import sys
 def main():
     """Main entry point for the npmsync CLI."""
     parser = argparse.ArgumentParser(description="Nginx Proxy Manager synchronization tool")
-    parser.add_argument("--config", help="Specify path to configuration file")
     parser.add_argument("--npm-url", help="Nginx Proxy Manager URL")
     args = parser.parse_args()
     
@@ -20,8 +19,6 @@ def main():
         print(f"{key}: {value}")
     
     # Override with command-line arguments if provided
-    if args.config:
-        config["proxy_hosts_file"] = args.config
     if args.npm_url:
         config["npm_url"] = args.npm_url
         
@@ -31,9 +28,6 @@ def main():
         sys.exit(1)
     if not config["username"] or not config["password"]:
         print("Error: USERNAME or PASSWORD not set. Please set them in .env")
-        sys.exit(1)
-    if not config["proxy_hosts_file"]:
-        print("Error: PROXY_HOSTS_FILE not set. Please set it in .env or provide --config")
         sys.exit(1)
     
     try:
