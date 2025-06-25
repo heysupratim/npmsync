@@ -121,6 +121,8 @@ class ConfigFileHandler(FileSystemEventHandler):
             return
             
         self.last_modified = current_time
+        # Log the event variables for debugging
+        print(f"Event type: {event.event_type}, Path: {event.src_path}")
         
         # Check if the event is for a file (not directory) and if it's a JSON file in our config directory
         if (not event.is_directory and 
