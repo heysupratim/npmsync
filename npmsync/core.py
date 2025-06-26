@@ -122,7 +122,7 @@ class ConfigFileHandler(FileSystemEventHandler):
             
         self.last_modified = current_time
         # Log the event variables for debugging
-        print(f"Event type: {event.event_type}, Path: {event.src_path}")
+        # print(f"Event type: {event.event_type}, Path: {event.src_path}")
 
         print(f"Dir {os.path.basename(event.src_path)} modified, syncing hosts...")
         default_config_file = os.path.join(self.config_dir, "proxy_hosts.json")

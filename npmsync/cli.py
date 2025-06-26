@@ -16,8 +16,8 @@ def main():
 
     # print config
     print("Loaded configuration:")
-    for key, value in config.items():
-        print(f"{key}: {value}")
+    # for key, value in config.items():
+    #     print(f"{key}: {value}")
     
     # Override with command-line arguments if provided
     if args.npm_url:
@@ -25,7 +25,7 @@ def main():
         
     # Validate configuration
     if not config["npm_url"]:
-        print("Error: NPM_URL not set. Please set it in .env or provide --npm-url")
+        print("Error: NPM_URL not set. Please set it in .env")
         sys.exit(1)
     if not config["username"] or not config["password"]:
         print("Error: USERNAME or PASSWORD not set. Please set them in .env")
