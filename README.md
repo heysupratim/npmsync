@@ -33,16 +33,20 @@ NPM_USERNAME=your_username
 NPM_PASSWORD=your_password
 ```
 
-Create a directory named `config` in your project root, and add a file called `proxy_hosts.json` inside it:
+Create a directory named `config` in your project root, and add a file called either `proxy_hosts.json` or `proxy_hosts.yaml` inside it:
 
 ```sh
 mkdir -p config
-touch config/proxy_hosts.json
+touch config/proxy_hosts.json  # or proxy_hosts.yaml
 ```
 
-## Configuration File Format for proxy_hosts.json
+> ⚠️ **Note:** The config directory must contain either `proxy_hosts.json` OR `proxy_hosts.yaml`, not both simultaneously. The application will only process one configuration file.
 
-The configuration file should be a JSON array of proxy host configurations that you want to commit to version control
+## Configuration File Format
+
+The configuration file should be either a JSON or YAML array of proxy host configurations that you want to commit to version control.
+
+### JSON Format (`proxy_hosts.json`)
 
 ```json
 [
@@ -68,7 +72,7 @@ The configuration file should be a JSON array of proxy host configurations that 
     "advanced_config": "",
     "locations": []
   },
-    {
+  {
     "domain_names": [
       "subdomain2.domain.com"
     ],
@@ -92,6 +96,49 @@ The configuration file should be a JSON array of proxy host configurations that 
   }
 ]
 ```
+
+### YAML Format (`proxy_hosts.yaml`)
+
+```yaml
+- domain_names:
+  - subdomain1.domain.com
+  forward_host: 192.168.1.64
+  forward_port: 9898
+  forward_scheme: http
+  caching_enabled: false
+  block_exploits: false
+  allow_websocket_upgrade: true
+  ssl_forced: true
+  http2_support: true
+  hsts_enabled: true
+  hsts_subdomains: false
+  enabled: true
+  meta:
+    letsencrypt_agree: true
+    dns_challenge: false
+  advanced_config: ""
+  locations: []
+
+- domain_names:
+  - subdomain2.domain.com
+  forward_host: 192.168.1.64
+  forward_port: 9898
+  forward_scheme: http
+  caching_enabled: false
+  block_exploits: false
+  allow_websocket_upgrade: true
+  ssl_forced: true
+  http2_support: true
+  hsts_enabled: true
+  hsts_subdomains: false
+  enabled: true
+  meta:
+    letsencrypt_agree: true
+    dns_challenge: false
+  advanced_config: ""
+  locations: []
+```
+
 > 💡 **Tip:** Ensure that your Nginx Proxy Manager already has SSL certificates set up for the domains you plan to use with these entries.
 
 ## Configration Values
