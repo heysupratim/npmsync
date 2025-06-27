@@ -5,6 +5,7 @@ import time
 from dotenv import load_dotenv
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
+import yaml
 
 def load_config():
     """Load configuration from environment variables."""
@@ -105,6 +106,11 @@ def create_or_update_host(npm_url, token, config):
                       json=config)
     r.raise_for_status()
 
+def load_yaml_config(yaml_file):
+    """Load configuration from YAML file."""
+    with open(yaml_file) as f:
+        return yaml.safe_load(f)
+
 class ConfigFileHandler(FileSystemEventHandler):
     """Handler for config directory change events."""
     def __init__(self, config_dir, npm_url, username, password):
@@ -125,17 +131,31 @@ class ConfigFileHandler(FileSystemEventHandler):
         # print(f"Event type: {event.event_type}, Path: {event.src_path}")
 
         print(f"Dir {os.path.basename(event.src_path)} modified, syncing hosts...")
-        default_config_file = os.path.join(self.config_dir, "proxy_hosts.json")
-        if os.path.exists(default_config_file):
-            sync_hosts(default_config_file, self.npm_url, self.username, self.password)
+        # Check for JSON file first, then YAML file
+        json_config_file = os.path.join(self.config_dir, "proxy_hosts.json")
+        yaml_config_file = os.path.join(self.config_dir, "proxy_hosts.yaml")
+        
+        if os.path.exists(json_config_file):
+            sync_hosts(json_config_file, self.npm_url, self.username, self.password)
+        elif os.path.exists(yaml_config_file):
+            sync_hosts(yaml_config_file, self.npm_url, self.username, self.password, is_yaml=True)
+        else:
+            print("No proxy_hosts.json or proxy_hosts.yaml found in the config directory")
             
 def watch_config_directory(config_dir, npm_url, username, password):
     """Watch the config directory for changes and sync hosts when changes are detected."""
-    # Get default config file for initial sync
-    default_config_file = os.path.join(config_dir, "proxy_hosts.json")
-    if os.path.exists(default_config_file):
-        # Initial sync with default file
-        sync_hosts(default_config_file, npm_url, username, password)
+    # Get default config files for initial sync
+    json_config_file = os.path.join(config_dir, "proxy_hosts.json")
+    yaml_config_file = os.path.join(config_dir, "proxy_hosts.yaml")
+    
+    if os.path.exists(json_config_file):
+        # Initial sync with JSON file
+        sync_hosts(json_config_file, npm_url, username, password)
+    elif os.path.exists(yaml_config_file):
+        # Initial sync with YAML file
+        sync_hosts(yaml_config_file, npm_url, username, password, is_yaml=True)
+    else:
+        print("No proxy_hosts.json or proxy_hosts.yaml found in the config directory")
     
     # Set up directory watching
     event_handler = ConfigFileHandler(config_dir, npm_url, username, password)
@@ -151,10 +171,13 @@ def watch_config_directory(config_dir, npm_url, username, password):
         observer.stop()
     observer.join()
 
-def sync_hosts(config_file, npm_url, username, password):
+def sync_hosts(config_file, npm_url, username, password, is_yaml=False):
     """Synchronize hosts based on configuration file."""
-    with open(config_file) as f:
-        configs = json.load(f)
+    if is_yaml:
+        configs = load_yaml_config(config_file)
+    else:
+        with open(config_file) as f:
+            configs = json.load(f)
 
     # Extract all domain names from configs
     all_domains = []
