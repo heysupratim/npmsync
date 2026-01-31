@@ -158,5 +158,5 @@ The configuration file should be either a JSON or YAML array of proxy host confi
 | hsts_subdomains         | Apply HSTS to subdomains (true/false)         |
 | enabled                 | Enable or disable the proxy host (true/false) |
 | meta                    | Additional metadata (object)                  |
-| advanced_config          | Advanced Nginx configuration (string)         |
-| locations                | Custom location blocks (array)                |
+| advanced_config         | Advanced Nginx configuration (string)         |
+| locations               | Custom location blocks (array)                |

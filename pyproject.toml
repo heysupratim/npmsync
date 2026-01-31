@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "npmsync"
-version = "0.1.0"
+version = "0.1.1"
 description = "Automation tool for Nginx Proxy Manager"
 authors = ["Supratim <sup270792@gmail.com>"]
 readme = "README.md"

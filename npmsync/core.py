@@ -86,8 +86,7 @@ def get_existing_hosts(npm_url, token):
     })
     return resp.json()
 
-def create_or_update_host(npm_url, token, config):
-    existing_hosts = get_existing_hosts(npm_url, token)
+def create_or_update_host(npm_url, token, config, existing_hosts):
     domain = config["domain_names"][0]
 
     for host in existing_hosts:
@@ -105,6 +104,31 @@ def create_or_update_host(npm_url, token, config):
                       headers={"Authorization": f"Bearer {token}"},
                       json=config)
     r.raise_for_status()
+
+
+def delete_host(npm_url, token, host_id, domain_names):
+    """Delete a proxy host from Nginx Proxy Manager."""
+    domains_str = ", ".join(domain_names)
+    print(f"Deleting host {domains_str} (ID: {host_id})...")
+    r = requests.delete(f"{npm_url}/api/nginx/proxy-hosts/{host_id}",
+                        headers={"Authorization": f"Bearer {token}"})
+    r.raise_for_status()
+
+
+def delete_stale_hosts(npm_url, token, existing_hosts, config_domains):
+    """Delete hosts from NPM that are not present in the config file.
+    
+    Args:
+        npm_url: The NPM API URL
+        token: Authentication token
+        existing_hosts: List of existing hosts from NPM
+        config_domains: Set of all domains defined in the config file
+    """
+    for host in existing_hosts:
+        host_domains = set(host["domain_names"])
+        # If none of the host's domains are in the config, delete the host
+        if not host_domains.intersection(config_domains):
+            delete_host(npm_url, token, host["id"], host["domain_names"])
 
 def load_yaml_config(yaml_file):
     """Load configuration from YAML file."""
@@ -172,7 +196,12 @@ def watch_config_directory(config_dir, npm_url, username, password):
     observer.join()
 
 def sync_hosts(config_file, npm_url, username, password, is_yaml=False):
-    """Synchronize hosts based on configuration file."""
+    """Synchronize hosts based on configuration file.
+    
+    The config file is treated as the single source of truth:
+    - Hosts in the config file are created or updated in NPM
+    - Hosts in NPM that are not in the config file are deleted
+    """
     if is_yaml:
         configs = load_yaml_config(config_file)
     else:
@@ -183,6 +212,9 @@ def sync_hosts(config_file, npm_url, username, password, is_yaml=False):
     all_domains = []
     for conf in configs:
         all_domains.extend(conf["domain_names"])
+    
+    # Create a set of all config domains for deletion check
+    config_domains = set(all_domains)
     
     # Generate wildcard domains from the domain names
     wildcard_domains = extract_wildcards_from_domains(all_domains)
@@ -199,7 +231,11 @@ def sync_hosts(config_file, npm_url, username, password, is_yaml=False):
             cert_mapping = {}
     
     token = token if 'token' in locals() else get_token(npm_url, username, password)
+    
+    # Get existing hosts once for efficiency
+    existing_hosts = get_existing_hosts(npm_url, token)
 
+    # Create or update hosts from config
     for conf in configs:
         # Get the appropriate certificate ID for this domain
         domain = conf["domain_names"][0]
@@ -213,4 +249,7 @@ def sync_hosts(config_file, npm_url, username, password, is_yaml=False):
             # Remove certificate_id if it exists in the config
             conf.pop("certificate_id", None)
         
-        create_or_update_host(npm_url, token, conf)
+        create_or_update_host(npm_url, token, conf, existing_hosts)
+    
+    # Delete hosts that exist in NPM but not in the config file
+    delete_stale_hosts(npm_url, token, existing_hosts, config_domains)
