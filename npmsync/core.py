@@ -68,8 +68,16 @@ def get_certificate_mapping(npm_url, token, wildcard_domains):
 def get_domain_certificate_id(domain, cert_mapping):
     """Get the appropriate certificate ID for a domain based on the cert mapping."""
     domain_parts = domain.split('.')
-    if len(domain_parts) >= 2:
+    
+    # Check for subdomain match (e.g., app.uxsymphony.com -> *.uxsymphony.com)
+    if len(domain_parts) > 2:
         wildcard = f"*.{'.'.join(domain_parts[1:])}"
+        if wildcard in cert_mapping:
+            return cert_mapping[wildcard]
+    
+    # Check for root domain match (e.g., uxsymphony.com -> *.uxsymphony.com)
+    if len(domain_parts) == 2:
+        wildcard = f"*.{domain}"
         if wildcard in cert_mapping:
             return cert_mapping[wildcard]
     
